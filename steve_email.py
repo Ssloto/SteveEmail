@@ -1,9 +1,10 @@
 import html2text
 import traceback
 import datetime
+import re
 
-from steve_constants import SOCKETLABS_ID, SOCKETLABS_SECRET
-from steve_templates import PlainTextEmailTemplate, HtmlEmailTemplate
+from steve_constants import API_URL_BASE, SOCKETLABS_ID, SOCKETLABS_SECRET, UNSUBSCRIBE_KEY
+from steve_templates import FIGURE_STYLE, IMAGE_STYLE, PlainTextEmailTemplate, HtmlEmailTemplate
 
 from socketlabs.injectionapi import SocketLabsClient
 from socketlabs.injectionapi.message.basicmessage import BasicMessage
@@ -25,6 +26,11 @@ class SteveBaseEmail:
         self.html_contents = ""
         self.plaintext_contents = ""
         self.unsubscribe_url = None
+        
+        # It's a gigantic no-no for me to parse HTML with regexes, but, it's only a small block..
+        # ...and yes, these should capture everything before the last ">"
+        self.figure_open_re = re.compile(r'(<figure[^>]+)>')
+        self.image_open_re = re.compile(r'(<img[^>]+)>')
 
     def set_subject(self, subject):
         self.message.subject = self.subject_template.format(subject).strip()
@@ -76,6 +82,9 @@ class SteveBaseEmail:
         # Strip any HTML from our plaintext contents...
         self.plaintext_contents = html2text.html2text(self.plaintext_contents)
         
+        # Add any inline style sweeteners...
+        self._fix_inline_styling()
+
         # Fill in the wrapped message's contents...
         self.message.html_body       = self.html_contents
         self.message.plain_text_body = self.plaintext_contents
@@ -83,15 +92,22 @@ class SteveBaseEmail:
         # Mark as sendable
         self._finalized = True
 
+    def _fix_inline_styling(self):
+        self.html_contents = self.figure_open_re.sub(r'\1 style="{0}">'.format(FIGURE_STYLE), self.html_contents)
+        self.html_contents = self.image_open_re.sub(r'\1 style="{0}">'.format(IMAGE_STYLE), self.html_contents)
+
 
 class SteveBulkEmail(SteveBaseEmail):
     def __init__(self, recipients):
         super().__init__(BulkMessage())
-        self.unsubscribe_url = "unsubscribe.example.com"
-        self.recipients = [BulkRecipient(recipient_email) for
-                                 recipient_email in recipients]
+        self.unsubscribe_url = f"{API_URL_BASE}/Unsubscribe?code={UNSUBSCRIBE_KEY}&email=%%Email%%"
         self.message.from_email_address = EmailAddress("updates@where-is-steve.org")
 
+        self.recipients = list()
+        for recpient_email in recipients:
+            br = BulkRecipient(recpient_email)
+            br.add_merge_data("Email", recpient_email)
+            self.recipients.append(br)
 
     def send(self):
         for recipient in self.recipients:

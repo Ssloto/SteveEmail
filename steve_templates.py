@@ -78,6 +78,7 @@ class EmailTemplate():
         self.open_body = open_body
         self.close_body = close_body
 
+
 PlainTextEmailTemplate = EmailTemplate(
     header = """===========================
                 |                         |
@@ -101,6 +102,7 @@ PlainTextEmailTemplate = EmailTemplate(
     item = "\n{}\n",
     item_footer = "{1} at {0}"
 )
+
 
 HtmlEmailTemplate = EmailTemplate(
 
@@ -141,12 +143,13 @@ HtmlEmailTemplate = EmailTemplate(
                         </td>
                         </tr>""",
         item="""<tr>
-                <td style="font-family; Georgia,serif;
+                <td style="font-family: Lucidia,Helvetica,,serif;
                 font-size: 17px;
                 line-height: 1.7;
                 padding: 0.5% 2%;
                 border: 1px solid black;
-                background-color: white;">
+                background-color: white;
+                max-width: 660px;">
                     {}
                 </td>
                 </tr>""",
@@ -160,6 +163,7 @@ HtmlEmailTemplate = EmailTemplate(
                     <a href="{}" style="color:white;">{}</a>
                     </td></tr>""",
         footer = """<tr><td style="background: black; color: white; font-size: 17px;">
+                    <p>Please, feel free to reply to this email. :)</p>
                     <p><a href="{}" style="color: white;">Click here to unsubscribe!</a></p>
                     <p>(C) Where-Is-Steve, All Rights Reserved</p></a>
                     </td></tr>""",
@@ -167,7 +171,20 @@ HtmlEmailTemplate = EmailTemplate(
         doublepad = """<tr><td><br><br></td></tr>""",
         open_body = """<table border="0" 
                         cellpadding="1" 
-                        cellspacing="0" 
-                        width="100%">""",
+                        cellspacing="0"
+                        width="100%"
+                        style="max-width: 660px;
+                               overflow-wrap: break-word;">""",
         close_body = "</table>"
 )
+
+
+FIGURE_STYLE="""background: black;
+                padding: 5px;
+                border: 1px solid black;
+                color: white;
+                max-width: 650px;"""
+
+IMAGE_STYLE="""padding:0;
+               margin:0;
+               max-width: 640px;"""

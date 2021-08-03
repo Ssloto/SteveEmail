@@ -5,7 +5,7 @@ import azure.functions as func
 import traceback
 from azure.cosmosdb.table.tableservice import TableService
 
-from steve_constants import ACCOUNT_KEY, API_URL_BASE, TEST_MODE
+from steve_constants import ACCOUNT_KEY, TEST_MODE, IGNORE_FETCH
 from steve_blob import SteveBlob
 from steve_email import SteveBulkEmail
 from steve_rss import SteveRss
@@ -22,10 +22,10 @@ def main(mytimer: func.TimerRequest) -> None:
 
 
     steve_table = SteveTable(account_key=ACCOUNT_KEY, test_mode=TEST_MODE)
-    last_succeeded_timestamp = steve_table.get_last_succeded_timestamp()
+    last_succeeded_timestamp = steve_table.get_last_succeeded_timestamp()
     srss = SteveRss.from_url(rss_url="https://where-is-steve.org/rss.xml", num_retries=3)
 
-    if srss.get_last_build_time() < last_succeeded_timestamp:
+    if not TEST_MODE and srss.get_last_build_time() < last_succeeded_timestamp:
         logging.info("Site has not been updated since last run.")
         steve_table.update_last_succeed_timestamp()
         return
@@ -44,14 +44,17 @@ def main(mytimer: func.TimerRequest) -> None:
     remote_rss = SteveBlob("steveemail", "rss-archive", "rss-test.xml" if TEST_MODE else "rss.xml", ACCOUNT_KEY)
     old_srss = SteveRss(remote_rss.read_blob_to_text())
 
-    new_items = srss.get_items_newer_than_old(old_srss)
+    if TEST_MODE and IGNORE_FETCH:
+        new_items = srss.get_items()[:1]
+    else:   
+        new_items = srss.get_items_newer_than_old(old_srss)
+    
     new_item_count = len(new_items)
 
     if new_item_count == 0:
         logging.info("There were no new items.")
         steve_table.update_last_succeed_timestamp()
-        return
-
+        
     recipients = steve_table.get_email_subscribers()
     sbe = SteveBulkEmail(recipients)
 

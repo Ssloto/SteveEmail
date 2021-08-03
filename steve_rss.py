@@ -28,8 +28,14 @@ class SteveRss:
 
 
     def get_items_newer_than_old(self, compare_steve_rss):
-        old_items = compare_steve_rss.get_items()
-        return [item for item in self.get_items() if item not in old_items]
+        curr_items = []
+        old_tuples = [i.tuple for i in compare_steve_rss.get_items()]
+        
+        for i in self.get_items():
+            if i.tuple not in old_tuples:
+                curr_items.append(i)
+        
+        return curr_items
 
 
     @staticmethod
@@ -55,11 +61,4 @@ class SteveRssItem:
         self.date = timezone_obj.localize(datetime.datetime.strptime(xml_node.find("pubDate").text, self._date_format))
         self.link = xml_node.find("link").text
         self.text = xml_node.find("description").text
-    
-    def __eq__(self, other):
-        return self.title == other.title and \
-                self.date == other.date and \
-                self.link == other.link and \
-                self.text == other.text
-                
-            
+        self.tuple = (self.title, self.date, self.link)

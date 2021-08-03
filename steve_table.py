@@ -12,6 +12,7 @@ class SteveTable():
         self.subscribers_partition_key = "testEmail" if self._test_mode else "email"
         self.timestamp_partition_key = "lastSent"
 
+
     def get_last_succeeded_timestamp(self):
         # Hilariously, my method of marking when this succeeded last is to retrieve a single, special row of the subscriber db,
         # which contains no data, but which we will update at the end of each successful run... b.c. it updates the timestamp

@@ -14,7 +14,7 @@ class SteveBlob():
         return self.client.download_blob().readall()
 
 
-    def write_blob(self, contents):
+    def write_blob(self, contents, overwrite=True):
         # w+b for reading AND writing
         with NamedTemporaryFile('w+b') as outf:
             # decode here to ensure we're writing UTF-8!
@@ -22,4 +22,4 @@ class SteveBlob():
             # go back to the beginning?
             outf.seek(0)
             # give file to client for upload!
-            self.client.upload_blob(outf)
+            self.client.upload_blob(outf, overwrite=True)
