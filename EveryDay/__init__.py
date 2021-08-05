@@ -25,7 +25,7 @@ def main(mytimer: func.TimerRequest) -> None:
     last_succeeded_timestamp = steve_table.get_last_succeeded_timestamp()
     srss = SteveRss.from_url(rss_url="https://where-is-steve.org/rss.xml", num_retries=3)
 
-    if not TEST_MODE and srss.get_last_build_time() < last_succeeded_timestamp:
+    if not TEST_MODE and not IGNORE_FETCH and srss.get_last_build_time() < last_succeeded_timestamp:
         logging.info("Site has not been updated since last run.")
         steve_table.update_last_succeed_timestamp()
         return

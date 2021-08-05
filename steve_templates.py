@@ -104,12 +104,38 @@ PlainTextEmailTemplate = EmailTemplate(
 )
 
 
-HtmlEmailTemplate = EmailTemplate(
+HtmlMaxWidth = 720
+HtmlFontSize = 17
+BackgroundImageUrl = "https://where-is-steve.org/wallpaper_2.jpg"
 
-        header = """<tr><th style="background: black;
+
+HtmlEmailTemplate = EmailTemplate(
+        open_body = f"""<html>
+                          <head>
+                          </head>
+                          <body style="background-image: url('{BackgroundImageUrl}');
+                                    background-size: cover;
+                                    background-repeat: no-repeat;
+                                    background-attachment: fixed;
+                                    background-position: center;
+                                    background-color: grey;
+                          ">
+                            <table border="0" 
+                                   cellpadding="1" 
+                                   cellspacing="0"
+                                   width="100%"
+                                   style="max-width: {HtmlMaxWidth}px;
+                                          width: 100%;
+                                          overflow-wrap: break-word;
+                                          margin-left: auto;
+                                          margin-right: auto;
+                                          margin-bottom: 50px;
+                                            ">""",
+        close_body = "</table></body></html>",
+        header = f"""<tr><th style="background: black;
                                    color: white;
                                    font-family: Georgia,serif;
-                                   font-size: 17px;
+                                   font-size: {int(1.2*HtmlFontSize)}px;
                                    margin: 1%;
                                    padding-top: 2.5%;
                                    padding-bottom: 2.5%;
@@ -121,7 +147,7 @@ HtmlEmailTemplate = EmailTemplate(
                         </th></tr>""",
         item_header= """<tr>
                         <td style="background: #e6e6ff;
-                            line-height: 0.75;
+                            line-height: 1.1;
                             padding-top: 1%;
                             padding-left: 1%;
                             padding-right: 1%;
@@ -142,49 +168,53 @@ HtmlEmailTemplate = EmailTemplate(
                         <h3>{}</h3>
                         </td>
                         </tr>""",
-        item="""<tr>
-                <td style="font-family: Lucidia,Helvetica,,serif;
-                font-size: 17px;
-                line-height: 1.7;
-                padding: 0.5% 2%;
-                border: 1px solid black;
-                background-color: white;
-                max-width: 660px;">
-                    {}
+        item=f"""<tr>
+                <td style="font-family: Lucidia,Helvetica,serif;
+                            font-size: {HtmlFontSize}px;
+                            line-height: 1.7;
+                            padding: 0.5% 3%;
+                            border: 1px solid black;
+                            background-color: white;
+                            max-width: 660px;">
+                    {"{}"}
                 </td>
                 </tr>""",
-        item_footer = """<tr>
+        item_footer = f"""<tr>
                          <td style="background: navy;
-                        color: white;
-                        font-size: 21px;
-                        line-height: 2;
-                        padding: 1%;
-                        border: 1px solid black;">
-                    <a href="{}" style="color:white;">{}</a>
-                    </td></tr>""",
-        footer = """<tr><td style="background: black; color: white; font-size: 17px;">
+                                    color: white;
+                                    font-size: {HtmlFontSize}px;
+                                    line-height: 2;
+                                    padding: 2%;
+                                    border: 1px solid black;">
+                            <a href="{"{}"}" style="color:white;">{"{}"}</a>
+                        </td>
+                        </tr>""",
+        footer = f"""<tr>
+                    <td style="background: black; color: white; font-size: {int(0.8*HtmlFontSize)}; padding: 2%;">
                     <p>Please, feel free to reply to this email. :)</p>
-                    <p><a href="{}" style="color: white;">Click here to unsubscribe!</a></p>
+                    <p><a href="{"{}"}" style="color: white;">Click here to unsubscribe!</a></p>
                     <p>(C) Where-Is-Steve, All Rights Reserved</p></a>
-                    </td></tr>""",
+                    </td>
+                    </tr>""",
         singlepad = """<tr><td><br></td></tr>""",
-        doublepad = """<tr><td><br><br></td></tr>""",
-        open_body = """<table border="0" 
-                        cellpadding="1" 
-                        cellspacing="0"
-                        width="100%"
-                        style="max-width: 660px;
-                               overflow-wrap: break-word;">""",
-        close_body = "</table>"
+        doublepad = """<tr><td><br><br></td></tr>"""
 )
 
 
-FIGURE_STYLE="""background: black;
-                padding: 5px;
-                border: 1px solid black;
-                color: white;
-                max-width: 650px;"""
 
-IMAGE_STYLE="""padding:0;
+FIGURE_STYLE=f"""background: black;
+                 padding: 5px;
+                 border: 1px solid black;
+                 color: white;
+                 width: 100%;
+                 max-width: {HtmlMaxWidth - 100}px;"""
+
+IMAGE_STYLE=f"""padding:0;
                margin:0;
-               max-width: 640px;"""
+               width: auto !important;
+               width: 100%;
+               max-width: {HtmlMaxWidth - 110}px;
+               height: auto;
+               float: center;
+               clear: both;               
+               """
