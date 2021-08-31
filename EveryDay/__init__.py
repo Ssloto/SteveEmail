@@ -5,7 +5,8 @@ import azure.functions as func
 import traceback
 from azure.cosmosdb.table.tableservice import TableService
 
-from steve_constants import ACCOUNT_KEY, TEST_MODE, IGNORE_FETCH
+from steve_constants import ACCOUNT_KEY, ACCOUNT_NAME, TEST_MODE, IGNORE_FETCH, \
+    BLOB_RSS_CONTAINER, BLOB_RSS_FILENAME
 from steve_blob import SteveBlob
 from steve_email import SteveBulkEmail
 from steve_rss import SteveRss
@@ -21,16 +22,20 @@ def main(mytimer: func.TimerRequest) -> None:
         logging.info('The timer is past due!')
 
 
-    steve_table = SteveTable(account_key=ACCOUNT_KEY, test_mode=TEST_MODE)
+    steve_table = SteveTable()
+    
     last_succeeded_timestamp = steve_table.get_last_succeeded_timestamp()
     srss = SteveRss.from_url(rss_url="https://where-is-steve.org/rss.xml", num_retries=3)
 
-    if not TEST_MODE and not IGNORE_FETCH and srss.get_last_build_time() < last_succeeded_timestamp:
-        logging.info("Site has not been updated since last run.")
+    if IGNORE_FETCH:
+        logging.info("We are ignoring site update information.")        
+    elif srss.get_last_build_time() < last_succeeded_timestamp:
         steve_table.update_last_succeed_timestamp()
+        logging.info("Site has not been updated since last run.")        
         return
     else:
-        logging.info("Site /has/ been updated since last run...")
+        logging.info("Site has been updated since last run.")        
+
 
     # We've passed our first check and have decided to continue...
 
@@ -38,10 +43,7 @@ def main(mytimer: func.TimerRequest) -> None:
     # we can't distinguish between content we've seen already unless...
     # we have a cached old copy of the rss XML, which we will now retrieve.
     
-    # this is approximately the URI we are using:
-    # https://steveemail.blob.core.windows.net/rss-archive/rss.xml
-
-    remote_rss = SteveBlob("steveemail", "rss-archive", "rss-test.xml" if TEST_MODE else "rss.xml", ACCOUNT_KEY)
+    remote_rss = SteveBlob(ACCOUNT_NAME, BLOB_RSS_CONTAINER, BLOB_RSS_FILENAME, ACCOUNT_KEY)
     old_srss = SteveRss(remote_rss.read_blob_to_text())
 
     if TEST_MODE and IGNORE_FETCH:

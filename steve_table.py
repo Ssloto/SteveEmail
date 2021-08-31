@@ -1,16 +1,17 @@
 from azure.cosmosdb.table.tableservice import TableService
-from steve_constants import ACCOUNT_KEY, TEST_MODE
+from steve_constants import ACCOUNT_KEY, ACCOUNT_NAME, TABLE_NAME, \
+    TABLE_ROW_KEY_TIMESTAMP, TABLE_PARTITION_KEY_PENDING_SUBSCRIBERS, \
+    TABLE_PARTITION_KEY_SUBSCRIBERS, TABLE_PARTITION_KEY_TIMESTAMP
+
 
 class SteveTable():
-    def __init__(self, account_key=ACCOUNT_KEY, test_mode=TEST_MODE):
-        self._test_mode = test_mode
-        self.service = TableService(account_name='steveemail', account_key=account_key)
-        self.table_name = "SteveSubscribers"
-        self.timestamp_row_key = "test" if self._test_mode else "00"
-
-        self.pending_subscribers_partion_key = "testPendingEmail" if self._test_mode else "pendingEmail"
-        self.subscribers_partition_key = "testEmail" if self._test_mode else "email"
-        self.timestamp_partition_key = "lastSent"
+    def __init__(self):
+        self.service = TableService(account_name=ACCOUNT_NAME, account_key=ACCOUNT_KEY)
+        self.table_name = TABLE_NAME
+        self.timestamp_row_key = TABLE_ROW_KEY_TIMESTAMP
+        self.pending_subscribers_partion_key = TABLE_PARTITION_KEY_PENDING_SUBSCRIBERS
+        self.subscribers_partition_key = TABLE_PARTITION_KEY_SUBSCRIBERS
+        self.timestamp_partition_key = TABLE_PARTITION_KEY_TIMESTAMP
 
 
     def get_last_succeeded_timestamp(self):
@@ -48,7 +49,6 @@ class SteveTable():
                                                                 "RowKey": email_address})
         # and delete our pending one...
         self.service.delete_entity(self.table_name, self.pending_subscribers_partion_key, email_address)
-        
         # thus blocking this from happening again
 
 
