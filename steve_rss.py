@@ -27,7 +27,7 @@ class SteveRss:
         return [SteveRssItem(item, self._timezone) for item in self.root.find("channel").findall("item")]
 
 
-    def get_items_newer_than_old(self, compare_steve_rss):
+    def get_items_not_in_old(self, compare_steve_rss):
         curr_items = []
         old_tuples = [i.tuple for i in compare_steve_rss.get_items()]
         

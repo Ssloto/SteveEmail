@@ -10,7 +10,6 @@ from steve_constants import ACCOUNT_KEY, ACCOUNT_NAME, TEST_MODE, IGNORE_FETCH, 
 from steve_blob import SteveBlob
 from steve_email import SteveBulkEmail
 from steve_rss import SteveRss
-from steve_table import SteveTable
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -28,13 +27,15 @@ def main(mytimer: func.TimerRequest) -> None:
     srss = SteveRss.from_url(rss_url="https://where-is-steve.org/rss.xml", num_retries=3)
 
     if IGNORE_FETCH:
-        logging.info("We are ignoring site update information.")        
-    elif srss.get_last_build_time() < last_succeeded_timestamp:
+        logging.info("We are ignoring site update information.")
+    # Time expressions in the RSS feed are underspecified and may be in a different time zone than the function app
+    # a difference of two days will allow us to capture any items that we may have missed accidentally
+    elif srss.get_last_build_time() < last_succeeded_timestamp - datetime.timedelta(days=2):
         steve_table.update_last_succeed_timestamp()
         logging.info("Site has not been updated since last run.")        
         return
     else:
-        logging.info("Site has been updated since last run.")        
+        logging.info("Site may have been updated since last run.")        
 
 
     # We've passed our first check and have decided to continue...
@@ -49,7 +50,12 @@ def main(mytimer: func.TimerRequest) -> None:
     if TEST_MODE and IGNORE_FETCH:
         new_items = srss.get_items()[:1]
     else:   
-        new_items = srss.get_items_newer_than_old(old_srss)
+        new_items = srss.get_items_not_in_old(old_srss)
+    
+    # Ignore any items that are more than a week old,
+    # so that if we rename old posts they are not suddenly deemed new.
+    if not IGNORE_FETCH:
+        new_items = [i for i in new_items if i.date < last_succeeded_timestamp - datetime.timedelta(days=7)]
     
     new_item_count = len(new_items)
 
